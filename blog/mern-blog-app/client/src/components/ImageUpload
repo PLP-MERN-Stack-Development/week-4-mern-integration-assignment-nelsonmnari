@@ -1,0 +1,49 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const ImageUpload = ({ onImageUpload }) => {
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [error, setError] = useState('');
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file && file.size <= 5000000) { // Limit file size to 5MB
+      setSelectedImage(file);
+      setError('');
+    } else {
+      setError('File size should be less than 5MB');
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedImage) {
+      setError('Please select an image to upload');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('image', selectedImage);
+
+    try {
+      const response = await axios.post('/api/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      onImageUpload(response.data); // Pass the uploaded image data to the parent component
+      setSelectedImage(null); // Reset the selected image
+    } catch (err) {
+      setError('Error uploading image. Please try again.');
+    }
+  };
+
+  return (
+    <div>
+      <input type="file" accept="image/*" onChange={handleImageChange} />
+      <button onClick={handleUpload}>Upload Image</button>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+    </div>
+  );
+};
+
+export default ImageUpload;
